@@ -1,9 +1,6 @@
 {
-    "name": "locosoftworks/client-session",
-    "description": "client side session store",
-    "require-dev": {
-        "phpunit/phpunit": "dev-master"
-    },
+    "name": "locosoftworks/php-cookie-session",
+    "description": "Session save handler used to store the session in a cookie",
     "license": "MIT",
     "authors": [
         {
@@ -12,10 +9,10 @@
         }
     ],
     "autoload": {
-        "psr-0": {"Loco\\": "module/src/"}
+        "psr-0": {"Loco\\": "src/"}
     },
     "minimum-stability": "dev",
     "require": {
-        "zendframework/zendframework": "2.3.1"
+        "php": ">=5.3"
     }
 }
