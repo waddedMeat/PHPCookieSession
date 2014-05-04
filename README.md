@@ -2,6 +2,26 @@
 # Cookie Session Handler #
 
 
+### Requires ###
+
+ * PHP >= 5.3
+ * [PHPCookieSession](https://github.com/moranjk/PHPCookieSession)
+
+
+### Composer Install ###
+
+Add the following to `composer.json` and execute `composer update`
+
+```
+"minimum-stability": "dev",
+"require": {
+    "locosoftworks/zf2-cookie-session": "dev-master"
+}
+```
+
+
+### Usage ###
+
 ```
 $handler = new Loco\Session\SaveHandler\ClientSession();
 ```
