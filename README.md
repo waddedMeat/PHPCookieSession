@@ -9,8 +9,6 @@
 
 ### Composer Install ###
 
-Add the following to `composer.json` and execute `composer update`
-
 ```
 "minimum-stability": "dev",
 "require": {
@@ -25,14 +23,14 @@ Add the following to `composer.json` and execute `composer update`
 $handler = new Loco\Session\SaveHandler\ClientSession();
 ```
 
-It is recommended that you encrypt your session, so you will need to create an encryption class that implements `Loco\Crypt\CipherInterface`
+It is recommended that you encrypt the session.  Create a class that implements `Loco\Crypt\CipherInterface` and inject it into the session handler
 
 
 ```
 $handler->setCipher($myEncryptionClass);
 ```
 
-Then you need to set the save handler (note: Despite having all of the necessary methods, ClientSession does not implement \SessionHandlerInterface for BC purposes)
+Set the session save handler using `session_set_save_handler()` (see [php documentation](http://www.php.net/manual/en/function.session-set-save-handler.php))
 
 ```
 session_set_save_handler(
@@ -47,7 +45,7 @@ session_set_save_handler(
 session_start();
 ```
 
-You **MUST** call `session_write_close` **BEFORE** returning any output or you will lose all session data from the request.
+You **MUST** call `session_write_close` **BEFORE** returning any output.  [Output Buffering](http://www.php.net/manual/en/book.outcontrol.php) is recommended.
 
 
 
