@@ -6,7 +6,8 @@ namespace Loco\Crypt;
  * Interface CipherInterface
  * @package Loco\Crypt
  */
-interface CipherInterface {
+interface CipherInterface
+{
 
     /**
      * @param $key

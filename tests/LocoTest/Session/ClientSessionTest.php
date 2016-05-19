@@ -1,9 +1,8 @@
 <?php
 
-use Zend\Test\PHPUnit\Controller\AbstractHttpControllerTestCase;
+namespace LocoTest\Session;
 
-class ClientSessionTest extends AbstractHttpControllerTestCase {
+class ClientSessionTest extends \PHPUnit_Framework_TestCase {
 
 
 }
- 

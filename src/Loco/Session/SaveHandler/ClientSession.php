@@ -5,7 +5,8 @@ namespace Loco\Session\SaveHandler;
 use Loco\Crypt\CipherInterface;
 use Loco\Crypt\None;
 
-class ClientSession {
+class ClientSession
+{
 
     /**
      * @var CipherInterface
@@ -43,8 +44,9 @@ class ClientSession {
      * Returns the domain used for the cookie or `session.cookie_domain` if it is not set
      * @return string
      */
-    public function getDomain() {
-        return $this->domain ?: $this->domain = (string) ini_get('session.cookie_domain');
+    public function getDomain()
+    {
+        return $this->domain ?: $this->domain = (string)ini_get('session.cookie_domain');
     }
 
     /**
@@ -54,7 +56,8 @@ class ClientSession {
      *
      * @return $this
      */
-    public function setDomain($domain) {
+    public function setDomain($domain)
+    {
         $this->domain = $domain;
 
         return $this;
@@ -64,8 +67,9 @@ class ClientSession {
      * Returns the lifetime for the cookie or `session.cookie_lifetime` if it does not exist
      * @return int
      */
-    public function getLifetime() {
-        return $this->lifetime ?: $this->lifetime = (int) ini_get('session.cookie_lifetime');
+    public function getLifetime()
+    {
+        return $this->lifetime ?: $this->lifetime = (int)ini_get('session.cookie_lifetime');
     }
 
     /**
@@ -73,7 +77,8 @@ class ClientSession {
      *
      * @return $this
      */
-    public function setLifetime($lifetime) {
+    public function setLifetime($lifetime)
+    {
         $this->lifetime = $lifetime;
 
         return $this;
@@ -85,7 +90,8 @@ class ClientSession {
      *
      * @return $this
      */
-    public function setCipher(CipherInterface $cypher) {
+    public function setCipher(CipherInterface $cypher)
+    {
         $this->cipher = $cypher;
 
         return $this;
@@ -98,7 +104,8 @@ class ClientSession {
      *
      * @return CipherInterface
      */
-    public function getCipher() {
+    public function getCipher()
+    {
         return $this->cipher ?: $this->cipher = new None();
     }
 
@@ -109,7 +116,8 @@ class ClientSession {
      * @param string $name
      * @return bool
      */
-    public function open($savePath, $name) {
+    public function open($savePath, $name)
+    {
         $this->name = $name;
 
         return true;
@@ -119,7 +127,8 @@ class ClientSession {
      * Close Session - free resources
      * @return bool
      */
-    public function close() {
+    public function close()
+    {
         return true;
     }
 
@@ -129,7 +138,8 @@ class ClientSession {
      * @param string $id
      * @return string
      */
-    public function read($id) {
+    public function read($id)
+    {
         return $this->getCipher()->decrypt($_COOKIE[$this->name]);
     }
 
@@ -141,25 +151,18 @@ class ClientSession {
      * @return bool
      * @throws \LogicException
      */
-    public function write($id, $data) {
-        if (headers_sent() && !$this->sent)
-            throw new \LogicException('Session data must be written before headers are sent');
+    public function write($id, $data)
+    {
         if (!$this->sent) {
-            $expires = null;
-            if ($ttl = $this->getLifetime()) {
-                $expires = time() + $ttl;
+            if (headers_sent()) {
+                throw new \LogicException('Session data must be written before headers are sent');
             }
-            $this->sent = setcookie(
-                $this->name,
-                $this->getCipher()->encrypt($data),
-                $expires,
-                '/',
-                $this->getDomain(),
-                null,
-                true
-            );
+            $ttl = $this->getLifetime();
+            $expire = $ttl ? $ttl + time() : null;
+            $this->sent = (bool)$this->setcookie($this->name, $this->getCipher()->encrypt($data), $expire);
         }
-        return (bool) $this->sent;
+
+        return $this->sent;
     }
 
     /**
@@ -170,20 +173,16 @@ class ClientSession {
      * @return bool
      * @throws \LogicException
      */
-    public function destroy($id) {
-        if (headers_sent() && !$this->sent)
-            throw new \LogicException('Session data must be destroyed before headers are sent');
-        if (!$this->sent)
-            $this->sent = setcookie(
-                $this->name,
-                '',
-                time() - 3600,
-                '/',
-                $this->getDomain(),
-                null,
-                true
-            );
-        return true;
+    public function destroy($id)
+    {
+        if (!$this->sent) {
+            if (headers_sent()) {
+                throw new \LogicException('Session data must be destroyed before headers are sent');
+            }
+            $this->sent = (bool)$this->setCookie($this->name, '', time() - 3600);
+        }
+
+        return $this->sent;
     }
 
     /**
@@ -193,7 +192,19 @@ class ClientSession {
      * @param int $maxlifetime
      * @return bool
      */
-    public function gc($maxlifetime) {
+    public function gc($maxlifetime)
+    {
         return true;
+    }
+
+    /**
+     * @param string $name
+     * @param mixed $value
+     * @param int $expire
+     * @return bool
+     */
+    private function setCookie($name, $value, $expire)
+    {
+        return setcookie($name, $value, $expire, '/', $this->getDomain(), null, true);
     }
 }

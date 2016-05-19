@@ -6,13 +6,15 @@ namespace Loco\Crypt;
  * Class None
  * @package Loco\Crypt
  */
-class None implements CipherInterface {
+class None implements CipherInterface
+{
 
     /**
      * @param $key
      * @return bool
      */
-    public function setKey($key) {
+    public function setKey($key)
+    {
         return true;
     }
 
@@ -20,7 +22,8 @@ class None implements CipherInterface {
      * @param $data
      * @return mixed
      */
-    public function encrypt($data) {
+    public function encrypt($data)
+    {
         return $data;
     }
 
@@ -28,7 +31,8 @@ class None implements CipherInterface {
      * @param $data
      * @return mixed
      */
-    public function decrypt($data) {
+    public function decrypt($data)
+    {
         return $data;
     }
 }
