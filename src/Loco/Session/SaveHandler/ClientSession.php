@@ -200,5 +200,4 @@ class ClientSession implements SessionHandlerInterface
         $this->cookieImpl = $cookieImpl;
         return $this;
     }
-
 }

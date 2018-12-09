@@ -34,6 +34,6 @@ class Cookie implements CookieInterface
             $good = setcookie($name, $value, $expire, $path, $domain, $secure, $httponly);
         }
 
-        return (bool) $good;
+        return (bool)$good;
     }
 }
