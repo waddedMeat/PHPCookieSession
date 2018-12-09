@@ -2,9 +2,17 @@
 
 namespace Loco\Request;
 
+const JS_TEMPLATE = <<<EOF
+<script>
+<!--
+document.cookie = "{COOKIE}";
+//--> </script>
+EOF;
 
 class Cookie implements CookieInterface
 {
+    public $useJsFallback = false;
+
     public function get(string $key)
     {
         return $_COOKIE[$key];
@@ -13,11 +21,19 @@ class Cookie implements CookieInterface
     public function set($name, $value = "", $expire = 0, $path = "", $domain = "", $secure = false, $httponly = false)
     {
         if (headers_sent()) {
-            throw new \LogicException('Headers already sent');
+            if (!$this->useJsFallback) {
+                throw new \RuntimeException("Headers already sent");
+            }
+            $date = date('r', $expire);
+            $string = "$name=$value; expires=$date; domain=$domain; path=$path;";
+            foreach (['secure' => $secure, 'HttpOnly' => $httponly] as $flag => $append) {
+                $append && $string .= "$flag;";
+            }
+            $good = print str_replace('{COOKIE}', $string, JS_TEMPLATE);
+        } else {
+            $good = setcookie($name, $value, $expire, $path, $domain, $secure, $httponly);
         }
-        if ($status = setcookie($name, $value, $expire, $path, $domain, $secure, $httponly)) {
-            $_COOKIE[$name] = $value;
-        }
-        return $status;
+
+        return (bool) $good;
     }
 }
