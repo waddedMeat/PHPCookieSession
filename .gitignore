@@ -1,2 +1,5 @@
 .idea
-/vendor/
+.phpunit.result.cache
+*.swp
+*.swo
+/vendor

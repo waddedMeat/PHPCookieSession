@@ -4,15 +4,22 @@ namespace Loco\Session\SaveHandler;
 
 use Loco\Crypt\CipherInterface;
 use Loco\Crypt\None;
+use Loco\Request\Cookie;
+use Loco\Request\CookieInterface;
+use SessionHandlerInterface;
 
-class ClientSession
+class ClientSession implements SessionHandlerInterface
 {
 
     /**
      * @var CipherInterface
      */
-    private $cipher;
+    private $cipherImpl;
 
+    /**
+     * @var CookieInterface
+     */
+    private $cookieImpl;
     /**
      * The domain used for setting the cookie
      *
@@ -34,89 +41,13 @@ class ClientSession
     private $lifetime;
 
     /**
-     * Flag to determine if the headers have already been send
-     * @var bool
-     */
-    private $sent;
-
-
-    /**
-     * Returns the domain used for the cookie or `session.cookie_domain` if it is not set
-     * @return string
-     */
-    public function getDomain()
-    {
-        return $this->domain ?: $this->domain = (string)ini_get('session.cookie_domain');
-    }
-
-    /**
-     * Sets the domain used for setting the cookie
-     *
-     * @param $domain
-     *
-     * @return $this
-     */
-    public function setDomain($domain)
-    {
-        $this->domain = $domain;
-
-        return $this;
-    }
-
-    /**
-     * Returns the lifetime for the cookie or `session.cookie_lifetime` if it does not exist
-     * @return int
-     */
-    public function getLifetime()
-    {
-        return $this->lifetime ?: $this->lifetime = (int)ini_get('session.cookie_lifetime');
-    }
-
-    /**
-     * @param mixed $lifetime
-     *
-     * @return $this
-     */
-    public function setLifetime($lifetime)
-    {
-        $this->lifetime = $lifetime;
-
-        return $this;
-    }
-
-    /**
-     * Sets the encryption class used to encrypt the session data
-     * @param CipherInterface $cypher
-     *
-     * @return $this
-     */
-    public function setCipher(CipherInterface $cypher)
-    {
-        $this->cipher = $cypher;
-
-        return $this;
-    }
-
-    /**
-     * Returns the encryption class used to encrypt the session data
-     * If no cipher is set, a `None` cipher will be returned and will
-     * not encrypt anything
-     *
-     * @return CipherInterface
-     */
-    public function getCipher()
-    {
-        return $this->cipher ?: $this->cipher = new None();
-    }
-
-    /**
      * Open Session - retrieve resources
      *
      * @param string $savePath
      * @param string $name
      * @return bool
      */
-    public function open($savePath, $name)
+    public function open($savePath, $name): bool
     {
         $this->name = $name;
 
@@ -140,7 +71,7 @@ class ClientSession
      */
     public function read($id)
     {
-        return $this->getCipher()->decrypt($_COOKIE[$this->name]);
+        return $this->getCipherImpl()->decrypt($this->getCookieImpl()->get($this->name));
     }
 
     /**
@@ -153,16 +84,53 @@ class ClientSession
      */
     public function write($id, $data)
     {
-        if (!$this->sent) {
-            if (headers_sent()) {
-                throw new \LogicException('Session data must be written before headers are sent');
-            }
-            $ttl = $this->getLifetime();
-            $expire = $ttl ? $ttl + time() : null;
-            $this->sent = (bool)$this->setcookie($this->name, $this->getCipher()->encrypt($data), $expire);
-        }
+        $ttl = $this->getLifetime();
+        $expire = $ttl ? $ttl + time() : null;
+        return $this->getCookieImpl()->set($this->name, $this->getCipherImpl()->encrypt($data), $expire);
+    }
 
-        return $this->sent;
+    /**
+     * Returns the lifetime for the cookie or `session.cookie_lifetime` if it does not exist
+     * @return int
+     */
+    public function getLifetime(): int
+    {
+        return $this->lifetime ?: $this->lifetime = (int)ini_get('session.cookie_lifetime');
+    }
+
+    /**
+     * @param mixed $lifetime
+     *
+     * @return $this
+     */
+    public function setLifetime(int $lifetime): SessionHandlerInterface
+    {
+        $this->lifetime = $lifetime;
+
+        return $this;
+    }
+
+    /**
+     * Returns the domain used for the cookie or `session.cookie_domain` if it is not set
+     * @return string
+     */
+    public function getDomain(): string
+    {
+        return $this->domain ?: $this->domain = (string)ini_get('session.cookie_domain');
+    }
+
+    /**
+     * Sets the domain used for setting the cookie
+     *
+     * @param $domain
+     *
+     * @return $this
+     */
+    public function setDomain(string $domain): SessionHandlerInterface
+    {
+        $this->domain = $domain;
+
+        return $this;
     }
 
     /**
@@ -175,14 +143,7 @@ class ClientSession
      */
     public function destroy($id)
     {
-        if (!$this->sent) {
-            if (headers_sent()) {
-                throw new \LogicException('Session data must be destroyed before headers are sent');
-            }
-            $this->sent = (bool)$this->setCookie($this->name, '', time() - 3600);
-        }
-
-        return $this->sent;
+        return $this->getCookieImpl()->set($this->name, '', time() - 3600);
     }
 
     /**
@@ -198,13 +159,46 @@ class ClientSession
     }
 
     /**
-     * @param string $name
-     * @param mixed $value
-     * @param int $expire
-     * @return bool
+     * Returns the encryption class used to encrypt the session data
+     * If no cipher is set, a `None` cipher will be returned and will
+     * not encrypt anything
+     *
+     * @return CipherInterface
      */
-    private function setCookie($name, $value, $expire)
+    public function getCipherImpl(): CipherInterface
     {
-        return setcookie($name, $value, $expire, '/', $this->getDomain(), null, true);
+        return $this->cipherImpl ?: $this->cipherImpl = new None();
     }
+
+    /**
+     * Sets the encryption class used to encrypt the session data
+     * @param CipherInterface $cypher
+     *
+     * @return $this
+     */
+    public function setCipherImpl(CipherInterface $cypher): SessionHandlerInterface
+    {
+        $this->cipherImpl = $cypher;
+
+        return $this;
+    }
+
+    /**
+     * @return CookieInterface
+     */
+    public function getCookieImpl(): CookieInterface
+    {
+        return $this->cookieImpl ?? $this->cookieImpl = new Cookie();
+    }
+
+    /**
+     * @param CookieInterface $cookieImpl
+     * @return SessionHandlerInterface
+     */
+    public function setCookieImpl(CookieInterface $cookieImpl): SessionHandlerInterface
+    {
+        $this->cookieImpl = $cookieImpl;
+        return $this;
+    }
+
 }

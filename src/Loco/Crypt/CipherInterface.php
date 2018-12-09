@@ -8,13 +8,6 @@ namespace Loco\Crypt;
  */
 interface CipherInterface
 {
-
-    /**
-     * @param $key
-     * @return void
-     */
-    public function setKey($key);
-
     /**
      * @param $data
      * @return string

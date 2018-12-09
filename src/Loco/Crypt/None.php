@@ -8,16 +8,6 @@ namespace Loco\Crypt;
  */
 class None implements CipherInterface
 {
-
-    /**
-     * @param $key
-     * @return bool
-     */
-    public function setKey($key)
-    {
-        return true;
-    }
-
     /**
      * @param $data
      * @return mixed
