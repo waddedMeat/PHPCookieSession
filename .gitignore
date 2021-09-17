@@ -1,1 +1,5 @@
-/vendor/
+.idea
+.phpunit.*
+*.swp
+*.swo
+/vendor

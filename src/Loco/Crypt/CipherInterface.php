@@ -6,23 +6,17 @@ namespace Loco\Crypt;
  * Interface CipherInterface
  * @package Loco\Crypt
  */
-interface CipherInterface {
-
+interface CipherInterface
+{
     /**
-     * @param $key
-     * @return void
-     */
-    public function setKey($key);
-
-    /**
-     * @param $data
+     * @param mixed $data
      * @return string
      */
-    public function encrypt($data);
+    public function encrypt($data): string;
 
     /**
-     * @param $data
+     * @param mixed $data
      * @return string
      */
-    public function decrypt($data);
+    public function decrypt($data): string;
 } 

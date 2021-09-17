@@ -1,18 +1,24 @@
 {
-    "name": "locosoftworks/php-cookie-session",
-    "description": "Session save handler used to store the session in a cookie",
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "James Moran",
-            "email": "moranjk75@gmail.com"
-        }
-    ],
-    "autoload": {
-        "psr-0": {"Loco\\": "src/"}
-    },
-    "minimum-stability": "dev",
-    "require": {
-        "php": ">=5.3"
+  "name": "locosoftworks/php-cookie-session",
+  "description": "Session save handler used to store the session in a cookie",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "James Moran",
+      "email": "moranjk75@gmail.com"
     }
+  ],
+  "autoload": {
+    "psr-0": {
+      "Loco\\": "src/"
+    }
+  },
+  "minimum-stability": "dev",
+  "require": {
+    "php": "^7.3|^8"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "10.0.x-dev",
+    "phpstan/phpstan": "1.0.x-dev"
+  }
 }
